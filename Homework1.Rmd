@@ -1,0 +1,173 @@
+---
+title: "Homework1 PSTAT 131"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include= F}
+
+library(tidyverse)
+library(tidymodels)
+library(ISLR)
+library(ggplot2)
+```
+
+## R Markdown
+
+### Question 1:
+
+##### Define supervised and unsupervised learning. What are the difference(s) between them?
+
+Supervised learning is a form of machine learning modeling technique that involves sorted data. The biggest attribute of supervised daya that the predictor measurements have an associated response measurement/ outcome (often denoted y). There is therefore a known variable that we are looking to find the answer for. Two common supervised learning models are the regression and the classification. (Book page 26)
+
+Unsupervised learning on the other hand is more abstract as there is no one response variable to predict. One main example of this is cluster analysis or clustering. (Book page 26)
+
+The main difference between them is that supervised learning consists of labeled and sorted data, whereas unsupervised learning does not. And also supervised learning has a defined y response variable; whereas unsupervised does not. 
+
+
+### Question 2:
+
+##### Explain the difference between a regression model and a classification model, specifically in the context of machine learning.
+
+Problems with a quantitative response are often referred to as regression problems, while those involving a qualitative response are often referred to as classification problems.
+
+(Lecture 1 slide 33)
+
+### Question 3: 
+
+##### Name two commonly used metrics for regression ML problems. Name two commonly used metrics for classification ML problems.
+
+Two commonly used metrics for regression machine learning problems are the Mean Squared Error (MSE- Training and Test), and the Bias-Variance Trade Off. 
+
+Two commonly used metrics for classification ML problems are the training and test Bayes error rates
+
+
+
+### Question 4: 
+
+##### As discussed, statistical models can be used for different purposes. These purposes can generally be classified into the following three categories. Provide a brief description of each.
+
+**Descriptive models:** Descriptive models choose the model to best visually emphasize a trend in data i.e., using a line on a scatterplot. 
+
+**Inferential models:** Inferential models choose the model that evaluates and states the relationship between outcome & predictor(s). 
+
+**Predictive models:** Predictive models aim to predict Y with minimum reducible error and as accurately as possible. For example in regression we have our predictors and our Y (outcome variable). 
+
+(Lecture 1 slide 39)
+
+### Question 5: 
+
+##### Predictive models are frequently used in machine learning, and they can usually be described as either mechanistic or empirically-driven. Answer the following questions.
+
+**Define mechanistic. Define empirically-driven. How do these model types differ? How are they similar?**
+Mechanistic assumes a parametric form of f and is a modeling approach that reduces the problem of estimating f down to one of estimating a set of parameters. 
+
+Empirically driven methods do not make explicit assumptions about the functional form of f. Instead they seek an estimate of f that gets as close to the data points as possible. 
+
+These models differ because Mechanistic assumes a parametric form of f whereas empirically driven (ED) does not. ED methods tend to require a large number of observations since they do not reduce the problem of estimating f to a small number of parameters, whereas Mechanistic models can estimate f using a smaller number of parameters. 
+
+However, they do have some similarities in that both models are somewhat flexible, while ED models tend to be more flexible in nature, mechanistic models can also enjoy more flecibility by adding parameters to their predictions. Additionally, both models can suffer from overfiting if not careful. 
+
+(Book page 21-24)
+
+**In general, is a mechanistic or empirically-driven model easier to understand? Explain your choice.**
+
+Assuming a parametric form for f simplifies the problem of estimating f because it is generally much easier to estimate a set of parameters in the linear model than it is to fit an entirely arbitrary function f. The potential disadvantage of a parametric approach is that the model we choose will usually not match the true unknown form of f. If the chosen model is too far from the true f, then our estimate will be poor.
+
+(Book page 22)
+
+**Describe how the bias-variance tradeoff is related to the use of mechanistic or empirically-driven models.**
+
+A simple model like a mechanistic model tends to have a higher bias and a lower variance because assuming a parametric form for f requires a higher level of bias as it t will reduce the risk of inaccurate predictions but the model will may not properly match the data set.
+
+On the other hand in a more complex model like the empirically-driven models, the opposite can occur where they could have a lower bias but higher variance as  the model will fit  the data set well however increase the chances of inaccurate predictions.
+
+(Lecture 1 slide 80)
+
+### Question 6: 
+
+##### A political candidate’s campaign has collected some detailed voter history data from their constituents. The campaign is interested in two questions: 
+###### Given a voter’s profile/data, how likely is it that they will vote in favor of the candidate?
+###### How would a voter’s likelihood of support for the candidate change if they had personal contact with the candidate?
+###### Classify each question as either predictive or inferential. Explain your reasoning for each.
+
+1. Given a voter’s profile/data, how likely is it that they will vote in favor of the candidate? I think that this question is predictive because it is trying to predict a future outcome based on data that is already available.
+
+2. How would a voter’s likelihood of support for the candidate change if they had personal contact with the candidate? I think that this question is more inferential because in this question we want to understand how personal contact with the candidate would effect a voter's likelihood of support, so we are assesing the relationshio between the outcome and the predictor. 
+
+```{r}
+
+library(tidyverse)
+library(tidymodels)
+library(ISLR)
+library(ggplot2)
+
+```
+
+### Question 1:
+```{r}
+
+mydata <- mpg
+
+ggplot(mydata, aes(x=hwy)) + geom_histogram(binwidth=1, color = "red", fill = "red")
+
+```
+
+I learnt from this histogram that cars have quite a variety of highway miles per gallon and that there is no distinct outcome of the data (a bell curve or linear increase or decrease). 
+
+
+### Question 2: 
+
+```{r}
+ggplot(mydata, aes(x=hwy, y=cty)) + geom_point() +  geom_point(size=2, shape=23)
+
+```
+
+I see that there is quite a strong positive correlation between highway and city signified by the increasing trend on the graph above. I think that this is strongger from hwy=5 to around hwy = 35 and then the correlation becomes slightly weaker (but still indicating a positive trend). This means that there is a positive correlation between the number of city miles per gallon a car can drive and the number of highway miles per gallon a car can drive. i.e. The cars that can drive longer on a highway (or have more miles per gallon) also tend to have higher miles per gallon in the city. 
+
+
+### Question 3: 
+
+```{r}
+
+mydata %>% 
+	group_by(manufacturer) %>% 
+	summarise(count = n()) %>% 
+	ggplot(aes(x = reorder(manufacturer,(+count)), y = count)) + 
+		geom_bar(stat = 'identity') + coord_flip()
+
+```
+
+The manufacturer that produced the most cars was dodge, and the one that produced the least cars was Lincoln. 
+
+### Question 4: 
+
+```{r}
+ggplot(mydata, aes(x=factor(cyl), y=hwy)) + geom_boxplot()
+
+```
+
+I personally do not see a distict pattern, I think that there is no clear relationship between the number of cylinders a car has and the number of highway miles per gallon. 
+
+### Question 5: 
+
+```{r}
+library(corrplot)
+```
+
+```{r}
+mpg %>% 
+  select(where(is.numeric)) %>% 
+  cor() %>% 
+  corrplot(type = 'lower', diag = FALSE, 
+           method = 'color')
+
+```
+
+The variables that are strongly negatively correlated are hwy and displacement (which makes sense to me), cty and displ (which also make sense to me), hwy and cyl which slightly surprised me (I don't know much about cars but I would have assumed that the more cylinders a car has the further it can drive), and finally cty and cyl (which surprised me for the same reason as cyl and hwy). Next the strongly positively correlated variables are hwy and cty which makes a lot of sense to me since a car that dries far on the highway should be able to drive far in the city as well and finally displ and cyl, this also did not surprise me. 
+
+I was slightly surprised that there wasnt a strong positive correlation between hwy and cty and year. I would have assumed that cars that were made more recently would have higher miles per gallon in both the highwway and the city. 
+
