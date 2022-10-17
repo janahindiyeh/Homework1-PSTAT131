@@ -1,0 +1,139 @@
+---
+title: "HW2"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+```{r, include =FALSE}
+library(ggplot2)
+library(tidyverse)
+library(tidymodels)
+library(corrplot)
+library(ggthemes)
+tidymodels_prefer()
+```
+
+```{r, include = FALSE}
+ab <- read_csv("abalone.csv")
+```
+
+### Question 1: 
+
+```{r, include =TRUE}
+#Creating function ab1 which calculates age using rings + 1.5 and then adding it to the abalone dataset 
+ab1 <- ab %>% 
+  mutate(age = (ab$rings + 1.5)) %>% 
+  select(everything(), age)
+
+#Plot a bar graph to be able to better asses the distribution of age
+ggplot(ab1, aes(x=age)) + geom_bar(color = "black", fill = "red")
+
+```
+As we see from the bar chart below, the age of the abalones models a left skewed normal distribution curve with the average/ most common ages centering around the 9-12 age range. 
+
+
+### Question 2
+
+```{r, include = TRUE}
+#Setting the seed so that I can reproduce results 
+set.seed(113069)
+
+#Splitting the data into a training and testing set using stratified sampling. This is done using a 80/20 split. 
+ab_split <- initial_split(ab1, prop = 0.80,
+                                strata = age)
+ab_train <- training(ab_split)
+ab_test <- testing(ab_split)
+```
+
+### Question 3
+
+```{r, include = TRUE}
+#Using the training data, I have created a recipe to predict the outcome variable age with all other predictor variables except for rings. 
+
+ab_recipe <-recipe(age ~ type + longest_shell + diameter + height + whole_weight + shucked_weight + viscera_weight + shell_weight, data = ab_train) %>% 
+              #Step_dummy is used so that the type variable (nominal) becomes usable
+              step_dummy(all_nominal_predictors()) %>% 
+              #Created the following interactions between different predictors
+              step_interact(terms = ~ longest_shell: diameter) %>% 
+              step_interact(terms = ~ shucked_weight:shell_weight)%>% 
+              #Broke up the type predictor into two separate predictors and then used that to create 
+              #interactions with shucked weight
+              step_interact(terms = ~ type_I:shucked_weight) %>%
+              step_interact(terms = ~ type_M:shucked_weight) %>%
+              #Predictors are centered and scaled
+              step_center(all_predictors()) %>%
+              step_scale(all_predictors())
+
+summary(ab_recipe)
+
+```
+We should not use rings to predict age because age is dependent/ calculated using rings. 
+
+
+### Question 4
+
+```{r, include=TRUE}
+#Creates and stored a linear regression object called lm_model using the lm engine 
+lm_model <- linear_reg() %>% 
+  set_engine("lm")
+```
+
+### Question 5
+
+```{r, include=TRUE}
+#Set up an empty workflow
+lm_wflow <- workflow() %>%
+  #Add lm_model created previously 
+  add_model(lm_model) %>% 
+  #Add recipe created previously 
+  add_recipe(ab_recipe)
+
+```
+
+### Question 6
+
+```{r, include=TRUE}
+#Create a model to help predict age of abalones 
+lm_fit <- fit(lm_wflow, data = ab_train)
+
+#Create a new data frame with the desired values for out prediction. 
+new <- data.frame(type = "I", longest_shell = 0.5, diameter = 0.1, height = 0.3, whole_weight = 4, shucked_weight = 1, viscera_weight = 2, shell_weight = 1)
+
+#Predict the age of the abalone based on the above values 
+abalone_pred <- predict(lm_fit,new_data = new)
+abalone_pred
+
+```
+
+
+### Question 7
+
+```{r, include=TRUE}
+#Use predict to create a tibble of our predicted values 
+abalone_train_res <- predict(lm_fit, new_data = ab_train %>% select(-age))
+abalone_train_res %>% 
+  head()
+
+```
+```{r, include=TRUE}
+
+#Use bing_cols below to add the actual observed ages alongside our predicted values
+abalone_train_res <- bind_cols(abalone_train_res, ab_train %>% select(age))
+abalone_train_res %>% 
+  head()
+
+```
+
+```{r, include = TRUE}
+#Create a metric that includes R2, RMSE and MAE
+ab_metrics <- metric_set(rmse, rsq, mae)
+#Apply the metric set to the tibble 
+ab_metrics(abalone_train_res, truth = age, estimate = .pred)
+```
+
+The metric above signifies a R-squared value of 0.5548639. This indicates that around 55% of the variability observed in the age of abalone is explained by the regression model. This therefore tells us that the fitted model I have coded above does not fit the data extremely well. Thus our model may not predict with the highest level of accuracy any new observations. 
